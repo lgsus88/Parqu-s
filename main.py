@@ -28,7 +28,22 @@ def lanzar_dados():
     total = dado1 + dado2
     return dado1, dado2, total
 
+def GODmode():
+    while True:
+        try:
+            dado1 = int(input("Ingresa el valor del primer dado (1-6): "))
+            dado2 = int(input("Ingresa el valor del segundo dado (1-6): "))
+            if 1 <= dado1 <= 6 and 1 <= dado2 <= 6:
+                return dado1, dado2
+            else:
+                print("Los valores deben estar entre 1 y 6. Intenta de nuevo.")
+        except ValueError:
+            print("Entrada no válida. Introduce números enteros.")
+
 def main():
+    #Esta es la función del modo desarrollador, sirve para seleccionar manualmente los números de los dados
+    #Inicia desactivado
+    GODmod = False
     #Obtenemos la lista de casillas del tablero
     xdd = incasillas()  
     
@@ -47,57 +62,71 @@ def main():
     
     #Establecemos un bucle para que funcione siempre que el juego esté siendo ejecutado
     while ejecutando:
-        #Dibujamos el tablero
-        tablero(app) 
-        
-        #Mostramos los valores de los dados
+        tablero(app)  #Dibujamos el tablero
+
+        #Se muestran los valores de los dados
         app.blit(imagenes_dados[dados[0]], (750, 250))
         app.blit(imagenes_dados[dados[1]], (750, 350))
 
-        #Dibujamos las fichas en el tablero
+        #Ponemos las fichas en el tablero
         for jugador in jugadores.values():
             jugador.dibujar_fichas(app)
 
+        #Usamos pygame.event para manejar los eventos que queramos
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 ejecutando = False
             elif evento.type == pygame.KEYDOWN:
-                #Siempre que se oprima enter, se lanzan los dados
+                #Al presionar enter, se calculan los valores de los dados
                 if evento.key == pygame.K_RETURN: 
-                    dados = lanzar_dados()  
-                    jugadorA = jugadores[turno[indice_turno]]  #Obtenemos el jugador actual
-                    total_dados = dados[0] + dados[1]  #Sumamos el valor de los dados
-
-                    #Se verifica si la suma de los dados es 5 y hay fichas en prisión
-                    if total_dados == 5 and any(ficha.en_prision for ficha in jugadorA.fichas):
-                        #Sacamos una ficha de prisión
-                        if jugadorA.offprison(xdd):
-                            print(f"{jugadorA.nombre} ha sacado una ficha de prisión.")
-                        else:
-                            print(f"{jugadorA.nombre} no pudo sacar una ficha de prisión.")
+                    if GODmod:
+                        print("GOD mode: Ingresa los valores de los dados.")
+                        nuevos_dados = GODmode()  #Se solicitan valores de los dados
+                        if nuevos_dados: 
+                            dados = nuevos_dados
                     else:
-                        #Se permite al jugador el elegir qué valor de cuál dado quiere usar
-                        print(f"Turno de {jugadorA.nombre}. Valores de los dados: {dados[0]} y {dados[1]}")
+                        dados = lanzar_dados()  #Se lanzan los dados aleatoriamente
+
+                    jugador_actual = jugadores[turno[indice_turno]]  #Identificamos el jugador actual
+                    total_dados = dados[0] + dados[1]  #Obtenemos la suma de los dados
+
+                    #Verificamos si la suma de los dados es 5 y hay fichas en prisión
+                    if total_dados == 5 and any(ficha.en_prision for ficha in jugador_actual.fichas):
+                        if jugador_actual.offprison(xdd):
+                            print(f"{jugador_actual.nombre} ha sacado una ficha de prisión.")
+                        else:
+                            print(f"{jugador_actual.nombre} no pudo sacar una ficha de prisión.")
+                    else:
+                        #Se le da al jugador a elegir qué valor del dado quiere usar
+                        print(f"Turno de {jugador_actual.nombre}. Valores de los dados: {dados[0]} y {dados[1]}")
                         print("Elige qué valor del dado usar (1 o 2):")
-                        #Usamos un try en caso de que la selección no sea correcta
+                        #Usamos un try en caso de que la selección no sea válida, no se cierre el programa
                         try:
                             eleccion_dado = int(input("Selecciona 1 o 2: ")) - 1
                             if 0 <= eleccion_dado < 2:
                                 pasos = dados[eleccion_dado]
-                                if not jugadorA.seleccionar_ficha(pasos, xdd, jugadores):
+                                if not jugador_actual.seleccionar_ficha(pasos, xdd, jugadores):
                                     print("No se pudo mover ninguna ficha.")
                             else:
                                 print("Selección no válida.")
                         except ValueError:
                             print("Entrada no válida. Introduce 1 o 2.")
-                    
-                    #Aquí se cambia al siguiente jugador, a menos que se hayan obtenido dobles
+
+                    #Se cambia al siguiente jugador, a menos que se hayan obtenido dobles
                     if dados[0] != dados[1]:
                         indice_turno = (indice_turno + 1) % len(turno)
                     else:
-                        print(f"{jugadorA.nombre} obtuvo dobles y juega de nuevo.")
+                        print(f"{jugador_actual.nombre} obtuvo dobles y juega de nuevo.")
 
-        pygame.display.flip()  #Sirve para actualizar la pantalla
+                #Si se presiona la tecla 9, se activa y desactiva el GODmode
+                elif evento.key == pygame.K_9:
+                    GODmod = not GODmod  #Se alterna entre el GODmode y el cálculo de dados automático
+                    if GODmod:
+                        print("GOD mode activado. Presiona 9 de nuevo para desactivarlo.")
+                    else:
+                        print("GOD mode desactivado.")
+
+        pygame.display.flip() #Sirve para actualizar la pantalla
     pygame.quit()  #Función para abandonar el juego
 
 if __name__ == "__main__":
