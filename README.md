@@ -1,6 +1,10 @@
 # Parqu-s
 Juego de parqués
+
+
 Instrucciones: 
+
+
 Al iniciar al juego, se pueden escoger dos modos (se puede alternar entre ellos en cualquier momento):
 El GODmode y el modo normal, el modo normal es el modo ideal para jugar el juego, al dar ENTER el juego calcula automaticamente los valores de los dados, por el lado contrario, en el GOD mode, el usuario puede ingresar manualmente el valor de los dados (siempre que se encuentren en un valor entre 1 a 6). Para alternar entre modos, se debe orpimir la tecla "9" (todo esto se menciona en la consola al ejecutar el juego).
 
